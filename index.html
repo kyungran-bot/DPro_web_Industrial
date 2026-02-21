@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dpro Assembly Exploded View</title>
+    <style>
+        :root {
+            --scroll-progress: 0;
+        }
+
+        body,
+        html {
+            margin: 0;
+            padding: 0;
+            height: 400vh;
+            background: #fdfdfd;
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            overflow-x: hidden;
+        }
+
+        /* Grid background */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-image: url('background.jpg');
+            background-size: cover;
+            background-position: center;
+            z-index: -1;
+            opacity: 0.8;
+            /* Slightly faded so the 3d elements pop more */
+        }
+
+        .scene {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            perspective: 1500px;
+        }
+
+        .assembly {
+            position: relative;
+            width: 800px;
+            height: 400px;
+            transform-style: preserve-3d;
+
+            /* Start completely flat, then rotate into 3D isometric view */
+            transform:
+                rotateX(calc(var(--scroll-progress) * 60deg)) rotateZ(calc(var(--scroll-progress) * -35deg)) scale(calc(1 - (var(--scroll-progress) * 0.2)));
+
+            transition: transform 0.1s linear;
+        }
+
+        .layer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transform-style: preserve-3d;
+        }
+
+        .layer img {
+            width: 100%;
+            height: auto;
+            object-fit: contain;
+            pointer-events: none;
+        }
+
+        /* 1. The fully combined flat photo layer */
+        .combined-photo {
+            transform: translateZ(1px);
+            /* Just slightly above for initial state */
+            /* Fades out rapidly during the first 20% of the scroll */
+            opacity: calc(1 - (var(--scroll-progress) * 5));
+            filter: drop-shadow(0 10px 30px rgba(0, 0, 0, 0.1));
+        }
+
+        /* 2. The 3D Exploding Layers (fade in as the combined photo fades out) */
+        .explosion-parts {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+            transform-style: preserve-3d;
+            /* Fades in quickly */
+            opacity: calc(var(--scroll-progress) * 5);
+        }
+
+        /* Base Plate Image (Bottom layer) */
+        .base-plate {
+            transform: translateZ(calc(var(--scroll-progress) * -200px));
+            filter: drop-shadow(0px calc(var(--scroll-progress) * 30px) 20px rgba(0, 0, 0, 0.3));
+        }
+
+        /* Middle Layer (Generated arbitrary layer) */
+        .middle-layer-1 {
+            transform: translateZ(calc(var(--scroll-progress) * -50px));
+            filter: sepia(100%) hue-rotate(180deg) saturate(200%) brightness(80%) drop-shadow(0 0 10px rgba(0, 0, 0, 0.2));
+            opacity: calc(var(--scroll-progress) * 0.8);
+        }
+
+        /* Top Layer (DPRO Text) */
+        .top-layer {
+            transform: translateZ(calc(var(--scroll-progress) * 250px));
+        }
+
+        /* Screws */
+        .screws {
+            transform: translateZ(calc(var(--scroll-progress) * 450px));
+        }
+
+        .screw {
+            position: absolute;
+            width: 24px;
+            height: 24px;
+            background: radial-gradient(circle, #f0f0f0, #888);
+            border-radius: 50%;
+            border: 3px solid #555;
+            box-shadow:
+                inset 0 0 5px rgba(0, 0, 0, 0.5),
+                2px 2px 10px rgba(0, 0, 0, 0.6);
+        }
+
+        .screw::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 15%;
+            width: 70%;
+            height: 4px;
+            background: #333;
+            transform: translateY(-50%) rotate(45deg);
+            border-radius: 2px;
+        }
+
+        .screw.top-left {
+            top: 20%;
+            left: 15%;
+        }
+
+        .screw.top-right {
+            top: 20%;
+            right: 15%;
+        }
+
+        .screw.bottom-left {
+            bottom: 20%;
+            left: 15%;
+        }
+
+        .screw.bottom-right {
+            bottom: 20%;
+            right: 15%;
+        }
+
+        /* Dashed assembly lines */
+        .assembly-lines {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            transform: translateZ(0);
+            transform-style: preserve-3d;
+        }
+
+        .line {
+            position: absolute;
+            width: 2px;
+            background: repeating-linear-gradient(to bottom, transparent, transparent 6px, #444 6px, #444 14px);
+            height: 650px;
+            transform: translateZ(-200px) rotateX(90deg);
+            transform-origin: top center;
+        }
+
+        .line.top-left {
+            top: 20%;
+            left: calc(15% + 12px);
+        }
+
+        .line.top-right {
+            top: 20%;
+            right: calc(15% + 12px);
+        }
+
+        .line.bottom-left {
+            bottom: 20%;
+            left: calc(15% + 12px);
+        }
+
+        .line.bottom-right {
+            bottom: 20%;
+            right: calc(15% + 12px);
+        }
+
+        /* UI Overlay */
+        header {
+            position: fixed;
+            top: 20px;
+            left: 30px;
+            font-size: 24px;
+            font-weight: bold;
+            color: #333;
+            z-index: 10;
+        }
+
+        .instruction {
+            position: fixed;
+            bottom: 40px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 16px;
+            font-weight: bold;
+            letter-spacing: 2px;
+            color: #555;
+            text-transform: uppercase;
+            animation: bounce 2s infinite;
+            z-index: 10;
+            background: rgba(255, 255, 255, 0.8);
+            padding: 10px 20px;
+            border-radius: 30px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        @keyframes bounce {
+
+            0%,
+            100% {
+                transform: translate(-50%, 0);
+            }
+
+            50% {
+                transform: translate(-50%, -10px);
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <header>D PRO ASSEMBLY</header>
+
+    <div class="scene">
+        <div class="assembly">
+
+            <!-- Initially Visible Combined Photo (fades out first) -->
+            <div class="layer combined-photo">
+                <img src="combined.png" alt="Combined View">
+            </div>
+
+            <!-- 3D Explosion parts (fade in as photo fades out) -->
+            <div class="explosion-parts">
+
+                <!-- Connecting dashed lines -->
+                <div class="layer assembly-lines">
+                    <div class="line top-left"></div>
+                    <div class="line top-right"></div>
+                    <div class="line bottom-left"></div>
+                    <div class="line bottom-right"></div>
+                </div>
+
+                <!-- 1st Image (맨 아랫층 / Bottom layer Base Plate) -->
+                <div class="layer base-plate">
+                    <img src="base_plate.png" alt="Base Plate">
+                </div>
+
+                <!-- Middle Layer (Generated) -->
+                <div class="layer middle-layer-1">
+                    <img src="top_layer.png" alt="Middle Layer">
+                </div>
+
+                <!-- Top Layer Image (DPRO Text) -->
+                <div class="layer top-layer">
+                    <img src="top_layer.png" alt="Top Layer">
+                </div>
+
+                <!-- Screws -->
+                <div class="layer screws">
+                    <img src="screws.png" alt="Screws">
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+
+    <div class="instruction">Scroll Down</div>
+
+    <script>
+        window.addEventListener('scroll', () => {
+            const maxScroll = document.body.scrollHeight - window.innerHeight;
+            let progress = window.scrollY / maxScroll;
+
+            if (progress < 0) progress = 0;
+            if (progress > 1) progress = 1;
+
+            // Disable limits on variables and enforce it purely in css
+            document.documentElement.style.setProperty('--scroll-progress', progress);
+        });
+    </script>
+</body>
+
+</html>
